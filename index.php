@@ -1,9 +1,10 @@
 <?php
+$config = json_decode(file_get_contents("./config.json"),TRUE);
 if (empty($_POST) && empty($_GET)) {
-    echo str_replace("%text%", "", file_get_contents("./default.page"));
+    echo str_replace("%text%", "", file_get_contents($config["maintemplate"]));
 } else if (!empty($_GET)) {
     if (isset($_GET['id'])) {
-        $con = mysqli_connect("localhost","nanner","6174sql","pastebin");
+        $con = mysqli_connect($config['db_hostname'],$config['db_username'],$config['db_password'],$config['db_name']);
         $paste = mysqli_query($con,"SELECT paste, title FROM pastes WHERE id= ".mysql_real_escape_string($_GET['id']));
         $pasteContent = mysqli_fetch_array($paste);
         $content = "<div class='text'>\n    <ol>\n";
@@ -28,7 +29,7 @@ if (empty($_POST) && empty($_GET)) {
              str_replace("%lineNumberWidth%",$lineNumberWidth,
              str_replace("%content%","$content",file_get_contents("paste.page")))));
     } else if (isset($_GET['new'])) {
-        $con = mysqli_connect("localhost","nanner","6174sql","pastebin");
+        $con = mysqli_connect($config['db_hostname'],$config['db_username'],$config['db_password'],$config['db_name']);
         $paste = mysqli_query($con,"SELECT paste FROM pastes WHERE id= ".mysql_real_escape_string($_GET['new']));
         $pasteContent = mysqli_fetch_array($paste);
         $content = "";
@@ -45,7 +46,7 @@ if (empty($_POST) && empty($_GET)) {
     }
 } else {
     if (isset($_POST['paste']) && $_POST['title']) {
-        $con = mysqli_connect("localhost","nanner","6174sql","pastebin");
+        $con = mysqli_connect($config['db_hostname'],$config['db_username'],$config['db_password'],$config['db_name']);
         $paste = mysql_real_escape_string($_POST['paste']);
         $title = mysql_real_escape_string($_POST['title']);
         $query = "INSERT INTO pastes ( paste, title ) VALUES ( '$paste' , '$title' );";
@@ -54,7 +55,7 @@ if (empty($_POST) && empty($_GET)) {
         }
         $id = mysqli_insert_id($con);
         mysqli_close($con);
-        header("Location: /$id");
+        header("Location: /p/$id");
     } else {
         echo "What did you do!?!??!";
     }
