@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Paste stuff</title>
+    <link rel="shortcut icon" href="http://nanner.tk/images/favicon.png" type="image/png">
+    <style type="text/css">
+@font-face {
+    font-family: OpenSans;
+    src: url('./styles/Open_Sans/OpenSans-Light.ttf');
+}
+html,body {
+    width:100%;
+    height:100%;
+    background-color:#223344;
+    overflow-y:hidden;
+    overflow-x:hidden;
+}
+* {
+    padding:0;
+    margin:0;
+}
+.error {
+    z-index:1;
+    position: fixed;
+    top:5px;
+    margin-right:10px;
+    right:100px;
+    font-size:20px;
+    padding:1px;
+    color:#A9A9A9;
+    border: 2px solid #8B2323;
+    border-radius:5px;
+    background-color:#CC3232;
+}
+.error:after {
+    content: '';
+    position: relative;
+    top:8px;
+    left:8px;
+    float:right;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 5px solid #8B2323;
+}
+#controlbox {
+    position:fixed; 
+    right: 0;
+    top:0px;
+    width:100px;
+    height:42px;
+    z-index:2;
+    font-family:OpenSans;
+    background-color:rgba(26,26,26,0.5);
+}
+#save:hover:after {
+    display:inline;
+    font-size:15px;
+    padding-left:3px;
+    color:#EBF4F1;
+    background-color:#333;
+    background-color: rgba(0,0,0,.2);
+    border-bottom-left-radius: 5px;
+    content: "Save\A control + s";
+    white-space: pre;
+    position: absolute;
+    top:42px;
+    right:-3px;
+    width:100px;
+    z-index: 99;
+}
+#save {
+    cursor:pointer;
+    margin:5px;
+    margin-right:11px;
+    width:32px;
+    height:32px;
+    display:inline-block;
+    background-image:url(./images/save.png);
+}
+#new:hover:after {
+    display:inline;
+    font-size:15px;
+    padding-left:3px;
+    color:#EBF4F1;
+    background-color:#333;
+    background-color: rgba(0,0,0,.2);
+    content: "New\A control + m";
+    border-bottom-left-radius: 5px;
+    white-space: pre;
+    position: absolute;
+    top:42px;
+    right:-3px;
+    width:100px;
+    z-index: 99;
+}
+#new {
+    cursor:pointer;
+    margin:5px;
+    margin-left:10px;
+    width:32px;
+    height:32px;
+    display:inline-block;
+    background-image:url(./images/new.png)
+}
+
+#pasteform {
+    position: relative;
+    bottom:12px;
+    height:100%;
+}
+#title {
+    display:inline-block;
+    position: relative;
+    top:16px;
+    height:25px;
+    background-color:#3A5C83;
+    border:0;
+    border-radius: 3px;
+    box-shadow:0px 0px 3px #223344 inset;
+    padding:3px;
+    outline:none;
+    font-size:20px;
+    font-family:OpenSans;
+    color:#BDBDBD;
+}
+#textarea {
+    font-family:OpenSans;
+    width:100%;
+    height:100%;
+}
+#textarea label {
+    position: relative;
+    top:16px;
+    font-size:20px;
+    margin-left:5px;
+    color:#A9A9A9;
+    width:100% px -50px;
+}
+#pastebox {
+    margin-top:15px;
+    font-family: Consolas, Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, monospace, serif;
+    z-index:0;
+    padding:5px;
+    background-color:#223344;
+    color:#A9A9A9;
+    width:100%;
+    height:100%;
+    resize:none;
+    border:none;
+    outline:none;
+    -webkit-box-sizing: border-box;
+       -moz-box-sizing: border-box;
+            box-sizing: border-box;
+}
+/** Fancy webkit scrollbar for the strong! **/
+::-webkit-scrollbar {
+    width: 12px;
+    margin-right:2px;
+}
+ 
+::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
+    border-radius: 10px;
+}
+ 
+::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
+}
+::-webkit-scrollbar-corner {
+    background-color:rgba(0,0,0,0);
+}
+    </style>
+</head>
+<body>
+    <form id="pasteform" action="index.php" onsubmit="return validate()" method="post">
+        <div id="controlbox">
+            <div id="save" onclick="pastebin()"></div>
+            <div id="new" onclick="clearbox()"></div>
+        </div>
+        <div id="textarea">
+            <label>Title:</label><input type="text" id="title" name="title" autocomplete="off" autocorrect="off" size=""/></span><span id="error"></span>
+            <textarea form="pasteform" id="pastebox" name="paste" placeholder="Paste something" spellcheck="false" autofocus>%text%</textarea>
+        </div>
+    </form>
+    <script type="text/javascript">
+//keycode things
+var isCtrl = false;
+document.onkeyup=function(e){
+    if(e.keyCode == 17) {
+        isCtrl=false;
+    }
+}
+
+document.onkeydown=function(e){
+    if (e.keyCode == 17) {
+        isCtrl=true;
+        e.preventDefault();
+        return false;
+    }
+    if (e.keyCode == 83 && isCtrl == true) {
+        pastebin();
+        isCtrl = false;
+        e.preventDefault();
+        return false;
+    } else if (e.keyCode == 77 && isCtrl == true) {
+        clearbox();
+        isCtrl = false;
+        e.preventDefault();
+        return false;
+    }
+}
+function pastebin() {
+    if (validate()) {
+        document.getElementById("pasteform").submit();
+    }
+}
+function clearbox() {
+    document.getElementById("pastebox").value = "";
+    document.getElementById("title").value = "";
+}
+//Function to validate form
+function validate() {
+    var retVal = true;
+    if (document.getElementById("pastebox").value == "") {
+        retVal = false;
+        document.getElementById("error").setAttribute("class","error");
+        document.getElementById("error").innerHTML = "You can't paste nothing!";
+    } else if (document.getElementById("title").value == "") {
+        retVal = false;
+        document.getElementById("error").setAttribute("class","error");
+        document.getElementById("error").innerHTML = "A book needs its title!";
+    }
+    return retVal;
+}
+    </script>
+</body>
+</html>
